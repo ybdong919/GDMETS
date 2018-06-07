@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+
+my $input=$ARGV[0];
+my $samplename=$input;
+$samplename=~s/^\.\/Output\///;
+$samplename=~s/_seq.txt$//;
+
+open (INPUT,'<',$input)or die;
+my @input=<INPUT>;
+my @familynames;
+my %sequences;
+my $numx=0;
+my $numy=0;
+foreach (@input){
+	
+	if (/^Gene_family/){
+	   chomp $_;
+	   $_=~s/:$//;
+	   $familynames[$numx]=$_;
+	   #print $seqtitle[$inum];
+	   $numy=$numx;
+	   $numx +=1;	   
+	}else{
+	   
+       $sequences{$familynames[$numy]} .= $_;      
+    }
+}
+system ("mkdir ./Output/paralog_CDS/$samplename");
+foreach (@familynames){
+   open (OUTPUT,'>',"onefamilygenes.fasta")or die;
+   print OUTPUT $sequences{$_};
+   close OUTPUT;   
+   system ("ESTScan -M ./args/Arabidopsis_thaliana.smat -o ./Output/paralog_CDS/$samplename/$_.fasta -ft information.txt onefamilygenes.fasta");
+}
+close INPUT;
+
+#### Note: an empty gene_family_cds.fasta file means that no CDS regions are found by ESTScan !!!  

@@ -1,0 +1,29 @@
+#!/usr/bin/perl 
+
+use strict;
+use DBI;
+
+my $hostname = 'mysql_local_infile=1:127.0.0.1:3307';
+my $database = 'orthomcl';
+my $username = 'root';
+my $password = 'sobad';
+
+my $dbh= DBI ->connect("dbi:mysql:${database}:$hostname", $username, $password) or die "Error: $DBI::errstr\n";
+my $sth = $dbh ->prepare("SHOW TABLES");
+$sth ->execute or die "SQL Error: $DBI::errstr\n";
+my $i=0;
+my @all_tables=();
+while (my $table=$sth ->fetchrow_array){
+   $i++;
+   print "table $i: $table\n";
+   push @all_tables, $table;
+
+}
+foreach my $table (@all_tables){
+	chomp $table;
+	
+    my $sth=$dbh ->prepare("DROP TABLE $table");
+    $sth ->execute or die "SQL Error: $DBI::errstr\n";
+    print "$table is deleted\n";   
+}
+
